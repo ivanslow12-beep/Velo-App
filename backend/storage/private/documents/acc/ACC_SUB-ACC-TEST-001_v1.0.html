@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Document</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1e293b; background: #fff; margin: 0; padding: 30px; font-size: 13px; line-height: 1.5; }
+    .doc-container { max-width: 800px; margin: 0 auto; background: #fff; }
+    .header-box { border-bottom: 2px solid #2563eb; padding-bottom: 15px; margin-bottom: 20px; text-align: center; }
+    h1 { margin: 0 0 6px 0; font-size: 20px; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; }
+    h2 { margin: 0 0 4px 0; font-size: 15px; color: #2563eb; }
+    h3 { margin: 16px 0 8px 0; font-size: 14px; color: #1e293b; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; font-weight: 600; }
+    p { margin: 4px 0; color: #475569; }
+    .field-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 24px; margin-bottom: 12px; }
+    .field-row { display: flex; font-size: 12.5px; padding: 3px 0; }
+    .field-label { width: 140px; font-weight: 500; color: #64748b; flex-shrink: 0; }
+    .field-colon { width: 15px; text-align: center; color: #94a3b8; }
+    .field-value { flex: 1; color: #0f172a; font-weight: 500; word-break: break-word; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 12px; }
+    th { background: #f8fafc; border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; font-weight: 600; color: #334155; }
+    td { border: 1px solid #cbd5e1; padding: 6px 10px; color: #1e293b; }
+    tr:nth-child(even) td { background: #f8fafc; }
+    .divider { border-top: 1px dashed #cbd5e1; margin: 16px 0; }
+    .approval-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-top: 20px; }
+    .approval-card { border: 1px solid #cbd5e1; border-radius: 4px; padding: 8px; text-align: center; background: #fafafa; }
+    .approval-role { font-size: 11px; font-weight: 600; color: #475569; margin-bottom: 35px; }
+    .approval-name { font-size: 11px; font-weight: 500; color: #0f172a; border-top: 1px solid #94a3b8; padding-top: 4px; }
+    .status-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+    .badge-yes { background: #dcfce7; color: #15803d; }
+    .badge-no { background: #fee2e2; color: #b91c1c; }
+    .badge-na { background: #f1f5f9; color: #475569; }
+    @media print { body { padding: 0; } .no-print { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="doc-container">
+    
+<div class="doc-section doc-section-header"><h1>ACTIVATION & CLOSING CONFIRMATION (ACC)</h1><h2>PT. VELO MEDIA INTERKONEKSI</h2><p>Konfirmasi Aktivasi Layanan Pelanggan & Billing</p></div><div class="doc-section doc-section-body"><h3>1. Data Kontrak & Pelanggan</h3><div class="field-row">
+          <span class="field-label">No. IWO</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">000999/VELO/IWO/X/26</span>
+        </div><div class="field-row">
+          <span class="field-label">Pelanggan</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">PT Maju Bersama Nusantara</span>
+        </div><div class="field-row">
+          <span class="field-label">Kode Pelanggan</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">CUST-001</span>
+        </div><div class="field-row">
+          <span class="field-label">Alamat Pemasangan</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">Jl. Sudirman Kav 25, Menara Mandiri Lt. 12, Jakarta Pusat</span>
+        </div><div class="field-row">
+          <span class="field-label">Nomor Subscription</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">SUB-ACC-TEST-001</span>
+        </div><div class="field-row">
+          <span class="field-label">Nomor Kontrak</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">CTR-ACC-TEST-001</span>
+        </div><div class="field-row">
+          <span class="field-label">Tanggal Aktivasi</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">2026-10-26</span>
+        </div><div class="field-row">
+          <span class="field-label">Mulai Billing</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">2026-11-01</span>
+        </div><div class="field-row">
+          <span class="field-label">Tarif Bulanan</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">10000000</span>
+        </div><div class="field-row">
+          <span class="field-label">Periode Kontrak</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">12</span>
+        </div><div class="divider"></div><h3>2. Tingkat Layanan (SLA)</h3><div class="field-row">
+          <span class="field-label">Availability</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">-</span>
+        </div><div class="field-row">
+          <span class="field-label">Bandwidth Guarantee</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">-</span>
+        </div><div class="field-row">
+          <span class="field-label">Customer Support Response</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">-</span>
+        </div><div class="field-row">
+          <span class="field-label">Hotline</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">-</span>
+        </div><div class="field-row">
+          <span class="field-label">Email Support</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">-</span>
+        </div><div class="field-row">
+          <span class="field-label">WhatsApp Support</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">-</span>
+        </div><div class="divider"></div><h3>3. Peralatan Yang Diserahkan (Equipment)</h3><table><thead><tr><th>Nama Perangkat</th><th>Spesifikasi / Deskripsi</th><th>Serial Number</th><th>Jumlah</th><th>Lokasi / Posisi</th></tr></thead><tbody><tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:12px;">Tidak ada data perangkat</td></tr></tbody></table><div class="divider"></div><h3>4. Kriteria Kelayakan & Persetujuan Pelanggan</h3><table><thead><tr>
+          <th style="width:50%;">Kriteria / Syarat</th>
+          <th style="width:15%; text-align:center;">Hasil</th>
+          <th style="width:35%;">Catatan / Evidence</th>
+        </tr></thead><tbody><tr><td colspan="3" style="text-align:center; color:#94a3b8; padding:12px;">Tidak ada kriteria</td></tr></tbody></table><div class="divider"></div><div style="margin-top:20px; border:1px solid #cbd5e1; border-radius:6px; padding:14px; background:#f8fafc;">
+          <p style="font-weight:600; margin-bottom:8px;">Persetujuan Pelanggan:</p>
+          <p style="font-size:12px; color:#475569;">Dengan ini pelanggan menyetujui bahwa layanan telah aktif dan berfungsi sesuai SLA.</p>
+          <div style="margin-top:25px; display:flex; justify-content:space-between; padding:0 30px;">
+            <div style="text-align:center;">
+              <p style="font-size:11px; color:#64748b; margin-bottom:40px;">Diserahkan oleh, PT VELO</p>
+              <p style="font-weight:600; border-top:1px solid #94a3b8; padding-top:4px;">( ivan )</p>
+            </div>
+            <div style="text-align:center;">
+              <p style="font-size:11px; color:#64748b; margin-bottom:40px;">Diterima & Disetujui oleh Pelanggan</p>
+              <p style="font-weight:600; border-top:1px solid #94a3b8; padding-top:4px;">( Budi Santoso )</p>
+            </div>
+          </div>
+        </div></div>
+  </div>
+</body>
+</html>

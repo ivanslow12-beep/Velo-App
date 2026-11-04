@@ -1,0 +1,108 @@
+export const BAST_CONTENT = {
+  sections: [
+    {
+      type: 'header',
+      components: [
+        { type: 'heading', text: 'BERITA ACARA SERAH TERIMA (BAST)', level: 1 },
+        { type: 'heading', text: 'PT. VELO MEDIA INTERKONEKSI', level: 2 },
+        { type: 'paragraph', text: 'Dokumen Serah Terima Layanan & Perangkat Internet / Jaringan' },
+      ],
+    },
+    {
+      type: 'body',
+      components: [
+        { type: 'heading', text: '1. Informasi Pelanggan & IWO', level: 3 },
+        { type: 'field_pair', label: 'No. IWO', value: '{{iwo.iwo_no}}' },
+        { type: 'field_pair', label: 'Tgl Pengajuan', value: '{{iwo.request_date}}' },
+        { type: 'field_pair', label: 'Tipe Permintaan', value: '{{iwo.request_type}}' },
+        { type: 'field_pair', label: 'Pelanggan', value: '{{customer.name}}' },
+        { type: 'field_pair', label: 'Kode Pelanggan', value: '{{customer.code}}' },
+        { type: 'field_pair', label: 'Alamat', value: '{{customer.address}}' },
+        { type: 'field_pair', label: 'Kontak Person', value: '{{customer.contact_name}}' },
+        { type: 'field_pair', label: 'Email', value: '{{customer.email}}' },
+        { type: 'field_pair', label: 'Telepon', value: '{{customer.phone}}' },
+        { type: 'field_pair', label: 'Layanan', value: '{{service.name}}' },
+        { type: 'field_pair', label: 'Sales PIC', value: '{{sales.name}}' },
+        { type: 'divider' },
+        { type: 'heading', text: '2. Informasi Jaringan & Konfigurasi', level: 3 },
+        { type: 'field_pair', label: 'Node / POP', value: '{{network.node_pop}}' },
+        { type: 'field_pair', label: 'Tipe Koneksi', value: '{{network.connection_type}}' },
+        { type: 'field_pair', label: 'POP Switch', value: '{{network.pop_switch}}' },
+        { type: 'field_pair', label: 'Switch Port', value: '{{network.switch_port}}' },
+        { type: 'field_pair', label: 'Router', value: '{{network.router}}' },
+        { type: 'field_pair', label: 'WAN IP', value: '{{network.wan_ip}}' },
+        { type: 'field_pair', label: 'Public IP', value: '{{network.public_ip}}' },
+        { type: 'field_pair', label: 'VLAN', value: '{{network.vlan}}' },
+        { type: 'divider' },
+        { type: 'heading', text: '3. Data Perangkat Terpasang', level: 3 },
+        {
+          type: 'dynamic_table',
+          source: 'devices',
+          columns: ['name', 'description', 'serial_number', 'quantity', 'location'],
+        },
+        { type: 'divider' },
+        { type: 'heading', text: '4. Pengesahan & Tanda Tangan', level: 3 },
+        {
+          type: 'approval_block',
+          roles: ['ENGINEER', 'SALES', 'FULFILMENT', 'MANAGER_MON', 'HEAD_OSS'],
+        },
+      ],
+    },
+  ],
+};
+
+export const ACC_CONTENT = {
+  sections: [
+    {
+      type: 'header',
+      components: [
+        { type: 'heading', text: 'ACTIVATION & CLOSING CONFIRMATION (ACC)', level: 1 },
+        { type: 'heading', text: 'PT. VELO MEDIA INTERKONEKSI', level: 2 },
+        { type: 'paragraph', text: 'Konfirmasi Aktivasi Layanan Pelanggan & Billing' },
+      ],
+    },
+    {
+      type: 'body',
+      components: [
+        { type: 'heading', text: '1. Data Kontrak & Pelanggan', level: 3 },
+        { type: 'field_pair', label: 'No. IWO', value: '{{iwo.iwo_no}}' },
+        { type: 'field_pair', label: 'Pelanggan', value: '{{customer.name}}' },
+        { type: 'field_pair', label: 'Kode Pelanggan', value: '{{customer.code}}' },
+        { type: 'field_pair', label: 'Alamat Pemasangan', value: '{{customer.address}}' },
+        { type: 'field_pair', label: 'Nomor Subscription', value: '{{acc.subscription_number}}' },
+        { type: 'field_pair', label: 'Nomor Kontrak', value: '{{acc.contract_number}}' },
+        { type: 'field_pair', label: 'Tanggal Aktivasi', value: '{{acc.activation_date}}' },
+        { type: 'field_pair', label: 'Mulai Billing', value: '{{acc.start_billing_date}}' },
+        { type: 'field_pair', label: 'Tarif Bulanan', value: '{{acc.monthly_tariff}}' },
+        { type: 'field_pair', label: 'Periode Kontrak', value: '{{acc.contract_period}}' },
+        { type: 'divider' },
+        { type: 'heading', text: '2. Tingkat Layanan (SLA)', level: 3 },
+        { type: 'field_pair', label: 'Availability', value: '{{sla.availability}}' },
+        { type: 'field_pair', label: 'Bandwidth Guarantee', value: '{{sla.bandwidth_guarantee}}' },
+        { type: 'field_pair', label: 'Customer Support Response', value: '{{sla.customer_support_response}}' },
+        { type: 'field_pair', label: 'Hotline', value: '{{sla.hotline}}' },
+        { type: 'field_pair', label: 'Email Support', value: '{{sla.email}}' },
+        { type: 'field_pair', label: 'WhatsApp Support', value: '{{sla.whatsapp}}' },
+        { type: 'divider' },
+        { type: 'heading', text: '3. Peralatan Yang Diserahkan (Equipment)', level: 3 },
+        {
+          type: 'dynamic_table',
+          source: 'equipments',
+          columns: ['name', 'description', 'serial_number', 'quantity', 'location'],
+        },
+        { type: 'divider' },
+        { type: 'heading', text: '4. Kriteria Kelayakan & Persetujuan Pelanggan', level: 3 },
+        {
+          type: 'requirements_table',
+          source: 'requirements',
+          columns: ['requirement', 'result', 'notes'],
+        },
+        { type: 'divider' },
+        {
+          type: 'customer_approval_block',
+          notes: 'Dengan ini pelanggan menyetujui bahwa layanan telah aktif dan berfungsi sesuai SLA.',
+        },
+      ],
+    },
+  ],
+};

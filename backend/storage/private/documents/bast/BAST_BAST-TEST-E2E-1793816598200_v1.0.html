@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Document</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1e293b; background: #fff; margin: 0; padding: 30px; font-size: 13px; line-height: 1.5; }
+    .doc-container { max-width: 800px; margin: 0 auto; background: #fff; }
+    .header-box { border-bottom: 2px solid #2563eb; padding-bottom: 15px; margin-bottom: 20px; text-align: center; }
+    h1 { margin: 0 0 6px 0; font-size: 20px; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; }
+    h2 { margin: 0 0 4px 0; font-size: 15px; color: #2563eb; }
+    h3 { margin: 16px 0 8px 0; font-size: 14px; color: #1e293b; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; font-weight: 600; }
+    p { margin: 4px 0; color: #475569; }
+    .field-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 24px; margin-bottom: 12px; }
+    .field-row { display: flex; font-size: 12.5px; padding: 3px 0; }
+    .field-label { width: 140px; font-weight: 500; color: #64748b; flex-shrink: 0; }
+    .field-colon { width: 15px; text-align: center; color: #94a3b8; }
+    .field-value { flex: 1; color: #0f172a; font-weight: 500; word-break: break-word; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 12px; }
+    th { background: #f8fafc; border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; font-weight: 600; color: #334155; }
+    td { border: 1px solid #cbd5e1; padding: 6px 10px; color: #1e293b; }
+    tr:nth-child(even) td { background: #f8fafc; }
+    .divider { border-top: 1px dashed #cbd5e1; margin: 16px 0; }
+    .approval-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-top: 20px; }
+    .approval-card { border: 1px solid #cbd5e1; border-radius: 4px; padding: 8px; text-align: center; background: #fafafa; }
+    .approval-role { font-size: 11px; font-weight: 600; color: #475569; margin-bottom: 35px; }
+    .approval-name { font-size: 11px; font-weight: 500; color: #0f172a; border-top: 1px solid #94a3b8; padding-top: 4px; }
+    .status-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+    .badge-yes { background: #dcfce7; color: #15803d; }
+    .badge-no { background: #fee2e2; color: #b91c1c; }
+    .badge-na { background: #f1f5f9; color: #475569; }
+    @media print { body { padding: 0; } .no-print { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="doc-container">
+    
+<div class="doc-section doc-section-header"><h1>BERITA ACARA SERAH TERIMA (BAST)</h1><h2>PT. VELO MEDIA INTERKONEKSI</h2><p>Dokumen Serah Terima Layanan & Perangkat Internet / Jaringan</p></div><div class="doc-section doc-section-body"><h3>1. Informasi Pelanggan & IWO</h3><div class="field-row">
+          <span class="field-label">No. IWO</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">724262/VELO/IWO/X/26</span>
+        </div><div class="field-row">
+          <span class="field-label">Tgl Pengajuan</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">2026-11-05</span>
+        </div><div class="field-row">
+          <span class="field-label">Tipe Permintaan</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">NEW_INSTALLATION</span>
+        </div><div class="field-row">
+          <span class="field-label">Pelanggan</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">PT Maju Bersama Nusantara</span>
+        </div><div class="field-row">
+          <span class="field-label">Kode Pelanggan</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">CUST-001</span>
+        </div><div class="field-row">
+          <span class="field-label">Alamat</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">Jl. Sudirman Kav 25, Menara Mandiri Lt. 12, Jakarta Pusat</span>
+        </div><div class="field-row">
+          <span class="field-label">Kontak Person</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">Budi Santoso</span>
+        </div><div class="field-row">
+          <span class="field-label">Email</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">budi@majubersama.co.id</span>
+        </div><div class="field-row">
+          <span class="field-label">Telepon</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">021-5551234</span>
+        </div><div class="field-row">
+          <span class="field-label">Layanan</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">Dedicated Internet Access 50 Mbps 1:1</span>
+        </div><div class="field-row">
+          <span class="field-label">Sales PIC</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">ivan</span>
+        </div><div class="divider"></div><h3>2. Informasi Jaringan & Konfigurasi</h3><div class="field-row">
+          <span class="field-label">Node / POP</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">-</span>
+        </div><div class="field-row">
+          <span class="field-label">Tipe Koneksi</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">-</span>
+        </div><div class="field-row">
+          <span class="field-label">POP Switch</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">-</span>
+        </div><div class="field-row">
+          <span class="field-label">Switch Port</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">-</span>
+        </div><div class="field-row">
+          <span class="field-label">Router</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">-</span>
+        </div><div class="field-row">
+          <span class="field-label">WAN IP</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">-</span>
+        </div><div class="field-row">
+          <span class="field-label">Public IP</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">-</span>
+        </div><div class="field-row">
+          <span class="field-label">VLAN</span>
+          <span class="field-colon">:</span>
+          <span class="field-value">-</span>
+        </div><div class="divider"></div><h3>3. Data Perangkat Terpasang</h3><table><thead><tr><th>Nama Perangkat</th><th>Spesifikasi / Deskripsi</th><th>Serial Number</th><th>Jumlah</th><th>Lokasi / Posisi</th></tr></thead><tbody><tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:12px;">Tidak ada data perangkat</td></tr></tbody></table><div class="divider"></div><h3>4. Pengesahan & Tanda Tangan</h3><div class="approval-grid"><div class="approval-card">
+            <div class="approval-role">Lead Engineer</div>
+            <div class="approval-name">ivan</div>
+          </div><div class="approval-card">
+            <div class="approval-role">Sales PIC</div>
+            <div class="approval-name">ivan</div>
+          </div><div class="approval-card">
+            <div class="approval-role">Fulfilment</div>
+            <div class="approval-name">Fulfilment Team</div>
+          </div><div class="approval-card">
+            <div class="approval-role">Manager Monitoring</div>
+            <div class="approval-name">Manager Monitoring</div>
+          </div><div class="approval-card">
+            <div class="approval-role">Head of OSS</div>
+            <div class="approval-name">Head of OSS</div>
+          </div></div></div>
+  </div>
+</body>
+</html>
