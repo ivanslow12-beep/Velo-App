@@ -126,6 +126,11 @@ IWO.init({
     ),
     defaultValue: 'DRAFT',
   },
+  status_locked: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  },
   is_archived: {
     type: DataTypes.BOOLEAN,
     defaultValue: false,

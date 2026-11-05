@@ -3,15 +3,19 @@ import { IWO, Customer, Service, User, IwoMilestone } from '../models/index.js';
 import { generateIwoNumber } from '../utils/iwoNumbering.js';
 import { getPagination, buildPaginationMeta } from '../utils/paginationHelper.js';
 import { logAudit } from '../utils/auditLogger.js';
+import { getMilestoneWeight, synchronizeIwoStatus } from '../utils/milestoneProgress.js';
 
 const DEFAULT_MILESTONES = [
   'Survey',
-  'Persiapan Instalasi',
-  'Instalasi',
-  'Testing',
-  'Aktivasi',
-  'BAST',
-  'ACC',
+  'Surat Izin',
+  'Pembayaran Deposit',
+  'Supervisi',
+  'Request Barang',
+  'Request IP',
+  'Request Perangkat',
+  'Penarikan Kabel BB',
+  'Pelurusan VLAN',
+  'Aktivasi Internet',
 ];
 
 function normalizeServicePrice(value) {
@@ -200,6 +204,7 @@ export class IwoService {
     const milestoneData = DEFAULT_MILESTONES.map((name, index) => ({
       iwo_id: iwo.id,
       name,
+      weight: getMilestoneWeight(name),
       order: index + 1,
       status: 'PENDING',
     }));
@@ -299,7 +304,8 @@ export class IwoService {
 
     await iwo.update({
       is_archived: shouldArchive,
-      status: shouldArchive ? 'ARCHIVED' : (iwo.status === 'ARCHIVED' ? 'PENDING' : iwo.status),
+      status_locked: false,
+      status: shouldArchive ? 'ARCHIVED' : synchronizeIwoStatus(iwo.status, Number(iwo.progress)),
       updated_by: actorId,
     });
 

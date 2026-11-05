@@ -27,6 +27,12 @@ IwoMilestone.init({
     type: DataTypes.ENUM('PENDING', 'IN_PROGRESS', 'DONE', 'SKIPPED'),
     defaultValue: 'PENDING',
   },
+  weight: {
+    type: DataTypes.DECIMAL(5, 2),
+    allowNull: false,
+    defaultValue: 0,
+    validate: { min: 0, max: 100 },
+  },
   due_date: {
     type: DataTypes.DATEONLY,
     allowNull: true,

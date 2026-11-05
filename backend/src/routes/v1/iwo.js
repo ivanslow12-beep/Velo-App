@@ -9,6 +9,11 @@ import { IwoService } from '../../services/IwoService.js';
 import { Op } from 'sequelize';
 import XLSX from 'xlsx';
 import multer from 'multer';
+import {
+  calculateMilestoneProgress,
+  getMilestoneWeight,
+  synchronizeIwoStatus,
+} from '../../utils/milestoneProgress.js';
 
 const router = Router();
 router.use(authenticate);
@@ -215,6 +220,30 @@ function isValidImportDate(value) {
   return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
 }
 
+function parseMilestoneDate(value, fieldName) {
+  if (value === undefined || value === null || value === '') return null;
+  if (typeof value !== 'string' || !isValidImportDate(value)) {
+    const validationError = new Error(`${fieldName} harus menggunakan format YYYY-MM-DD.`);
+    validationError.status = 400;
+    throw validationError;
+  }
+  return value;
+}
+
+async function syncIwoStatusAndProgress(iwoId) {
+  const milestones = await IwoMilestone.findAll({ where: { iwo_id: iwoId } });
+  const progress = calculateMilestoneProgress(milestones);
+  const iwo = await IWO.findByPk(iwoId);
+  if (!iwo) {
+    const notFoundError = new Error('IWO not found');
+    notFoundError.status = 404;
+    throw notFoundError;
+  }
+  const status = synchronizeIwoStatus(iwo.status, progress, iwo.status_locked);
+  await iwo.update({ progress, status });
+  return { progress, status };
+}
+
 // GET /api/v1/iwo
 router.get('/', async (req, res, next) => {
   try {
@@ -390,10 +419,15 @@ router.patch('/:id/status', authorize(ROLES.ADMINISTRATOR, ROLES.MANAGEMENT, ROL
     const { status, notes } = req.body;
     const validStatuses = ['DRAFT', 'PENDING', 'IN_PROGRESS', 'ACTIVATION', 'BAST', 'ACC', 'COMPLETED', 'CANCELLED', 'ARCHIVED'];
     if (!validStatuses.includes(status)) return error(res, 'Invalid status', 400);
+    if (status === 'COMPLETED' && Number(iwo.progress) < 100) {
+      return error(res, 'IWO hanya dapat diselesaikan jika progress sudah 100%.', 400);
+    }
 
-    const before = { status: iwo.status };
+    const before = { status: iwo.status, status_locked: iwo.status_locked };
+    const statusLocked = ['PENDING', 'CANCELLED'].includes(status);
     await iwo.update({
       status,
+      status_locked: statusLocked,
       notes: notes !== undefined ? notes : iwo.notes,
       is_archived: status === 'ARCHIVED' ? true : iwo.is_archived,
       updated_by: req.user.id,
@@ -402,30 +436,119 @@ router.patch('/:id/status', authorize(ROLES.ADMINISTRATOR, ROLES.MANAGEMENT, ROL
     await logAudit({
       actorId: req.user.id, actorName: req.user.name,
       action: 'IWO_STATUS_CHANGED', entityType: 'IWO', entityId: iwo.id,
-      beforeData: before, afterData: { status }, ip: req.ip,
+      beforeData: before, afterData: { status, status_locked: statusLocked }, ip: req.ip,
     });
 
-    return success(res, { id: iwo.id, status });
+    return success(res, { id: iwo.id, status, status_locked: statusLocked });
   } catch (err) { next(err); }
 });
 
 // PATCH /api/v1/iwo/:id/milestones/:milestoneId
-router.patch('/:id/milestones/:milestoneId', authenticate, async (req, res, next) => {
+router.post('/:id/milestones', async (req, res, next) => {
+  try {
+    const iwo = await IWO.findByPk(req.params.id);
+    if (!iwo) return error(res, 'IWO not found', 404);
+    const name = typeof req.body.name === 'string' ? req.body.name.trim() : '';
+    if (!name) return error(res, 'Nama milestone wajib diisi.', 400);
+    const dueDate = parseMilestoneDate(req.body.due_date, 'Tanggal target');
+    const order = (await IwoMilestone.max('order', { where: { iwo_id: req.params.id } }) || 0) + 1;
+    const milestone = await IwoMilestone.create({
+      iwo_id: req.params.id,
+      name,
+      weight: getMilestoneWeight(name),
+      description: typeof req.body.description === 'string' ? req.body.description.trim() || null : null,
+      due_date: dueDate,
+      order,
+      status: 'DONE',
+      completed_at: dueDate ? new Date(`${dueDate}T00:00:00.000Z`) : new Date(),
+      completed_by: req.user.id,
+    });
+    const { progress, status } = await syncIwoStatusAndProgress(req.params.id);
+    await logAudit({
+      actorId: req.user.id,
+      action: 'IWO_MILESTONE_CREATED',
+      entityType: 'IWO_MILESTONE',
+      entityId: milestone.id,
+      afterData: milestone.toJSON(),
+      ip: req.ip,
+    });
+    return success(res, { ...milestone.toJSON(), iwo_progress: progress, iwo_status: status }, 'Milestone berhasil ditambahkan.', 201);
+  } catch (err) {
+    if (err.status) return error(res, err.message, err.status);
+    next(err);
+  }
+});
+
+router.patch('/:id/milestones/:milestoneId', async (req, res, next) => {
   try {
     const milestone = await IwoMilestone.findOne({
       where: { id: req.params.milestoneId, iwo_id: req.params.id },
     });
     if (!milestone) return error(res, 'Milestone not found', 404);
 
-    const { status, due_date } = req.body;
-    const updates = { status };
-    if (due_date) updates.due_date = due_date;
-    if (status === 'DONE') {
-      updates.completed_at = new Date();
-      updates.completed_by = req.user.id;
+    const before = milestone.toJSON();
+    const updates = {};
+    if (req.body.name !== undefined) {
+      if (typeof req.body.name !== 'string' || !req.body.name.trim()) {
+        return error(res, 'Nama milestone wajib diisi.', 400);
+      }
+      updates.name = req.body.name.trim();
     }
+    if (req.body.description !== undefined) {
+      updates.description = typeof req.body.description === 'string' ? req.body.description.trim() || null : null;
+    }
+    if (req.body.due_date !== undefined) {
+      updates.due_date = parseMilestoneDate(req.body.due_date, 'Tanggal target');
+    }
+    if (!Object.keys(updates).length) return error(res, 'Tidak ada perubahan milestone.', 400);
+    updates.weight = getMilestoneWeight(updates.name ?? milestone.name);
+    const targetDate = updates.due_date !== undefined ? updates.due_date : milestone.due_date;
+    updates.status = 'DONE';
+    updates.completed_at = targetDate ? new Date(`${targetDate}T00:00:00.000Z`) : new Date();
+    updates.completed_by = req.user.id;
     await milestone.update(updates);
-    return success(res, milestone);
+    const { progress, status } = await syncIwoStatusAndProgress(req.params.id);
+    await logAudit({
+      actorId: req.user.id,
+      action: 'IWO_MILESTONE_UPDATED',
+      entityType: 'IWO_MILESTONE',
+      entityId: milestone.id,
+      beforeData: before,
+      afterData: milestone.toJSON(),
+      ip: req.ip,
+    });
+    return success(res, { ...milestone.toJSON(), iwo_progress: progress, iwo_status: status });
+  } catch (err) {
+    if (err.status) return error(res, err.message, err.status);
+    next(err);
+  }
+});
+
+router.delete('/:id/milestones/:milestoneId', async (req, res, next) => {
+  try {
+    const milestone = await IwoMilestone.findOne({
+      where: { id: req.params.milestoneId, iwo_id: req.params.id },
+    });
+    if (!milestone) return error(res, 'Milestone not found', 404);
+    const before = milestone.toJSON();
+    await milestone.destroy();
+    const remaining = await IwoMilestone.findAll({
+      where: { iwo_id: req.params.id },
+      order: [['order', 'ASC']],
+    });
+    for (const [index, item] of remaining.entries()) {
+      if (item.order !== index + 1) await item.update({ order: index + 1 });
+    }
+    const { progress, status } = await syncIwoStatusAndProgress(req.params.id);
+    await logAudit({
+      actorId: req.user.id,
+      action: 'IWO_MILESTONE_DELETED',
+      entityType: 'IWO_MILESTONE',
+      entityId: req.params.milestoneId,
+      beforeData: before,
+      ip: req.ip,
+    });
+    return success(res, { progress, status }, 'Milestone berhasil dihapus.');
   } catch (err) { next(err); }
 });
 

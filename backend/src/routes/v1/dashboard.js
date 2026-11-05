@@ -22,7 +22,7 @@ router.get('/', async (req, res, next) => {
     const pendingIwo = await IWO.count({ where: { ...whereScope, status: ['DRAFT', 'PENDING'] } });
     const inProgressIwo = await IWO.count({ where: { ...whereScope, status: ['IN_PROGRESS', 'ACTIVATION', 'BAST', 'ACC'] } });
     const completedIwo = await IWO.count({ where: { ...whereScope, status: 'COMPLETED' } });
-    const overdueIwo = await IWO.count({ where: { ...whereScope, is_overdue: true, status: { [Op.ne]: 'COMPLETED' } } });
+    const overdueIwo = await IWO.count({ where: { ...whereScope, is_overdue: true, status: { [Op.notIn]: ['COMPLETED', 'CANCELLED'] } } });
 
     // SLA performance (% completed on time)
     const slaMet = await IWO.count({
@@ -71,7 +71,7 @@ router.get('/', async (req, res, next) => {
 
     // Action Required: Overdue IWOs
     const overdueList = await IWO.findAll({
-      where: { ...whereScope, is_overdue: true, status: { [Op.ne]: 'COMPLETED' } },
+      where: { ...whereScope, is_overdue: true, status: { [Op.notIn]: ['COMPLETED', 'CANCELLED'] } },
       include: [
         { model: Customer, as: 'customer', attributes: ['name', 'code'] },
         { model: Service, as: 'service', attributes: ['name'] },

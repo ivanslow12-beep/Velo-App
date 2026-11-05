@@ -85,7 +85,7 @@
             class="group cursor-pointer"
           >
             <div class="flex items-center justify-between text-xs mb-1">
-              <span class="font-medium text-slate-600 dark:text-slate-300 group-hover:text-blue-600">{{ st }}</span>
+              <span class="font-medium text-slate-600 dark:text-slate-300 group-hover:text-blue-600">{{ st === 'CANCELLED' ? 'CANCEL' : st }}</span>
               <span class="font-bold text-slate-900 dark:text-white">{{ count }}</span>
             </div>
             <div class="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
@@ -148,12 +148,13 @@
                 <th class="table-header">No. IWO</th>
                 <th class="table-header">Pelanggan</th>
                 <th class="table-header">Layanan</th>
+                <th class="table-header">Progress</th>
                 <th class="table-header">Aksi</th>
               </tr>
             </thead>
             <tbody>
               <tr v-if="!stats.action_required?.pending_list?.length">
-                <td colspan="4" class="table-cell text-center text-slate-400 py-6">
+                <td colspan="5" class="table-cell text-center text-slate-400 py-6">
                   Tidak ada IWO pending saat ini
                 </td>
               </tr>
@@ -163,6 +164,14 @@
                 </td>
                 <td class="table-cell font-medium">{{ item.customer?.name || '-' }}</td>
                 <td class="table-cell text-slate-500">{{ item.service?.name || '-' }}</td>
+                <td class="table-cell">
+                  <div class="flex items-center gap-2">
+                    <div class="w-16 h-1.5 rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
+                      <div class="h-full rounded-full bg-blue-600" :style="{ width: `${item.progress || 0}%` }"></div>
+                    </div>
+                    <span class="text-[10px] font-mono text-slate-500">{{ item.progress || 0 }}%</span>
+                  </div>
+                </td>
                 <td class="table-cell">
                   <router-link :to="`/iwo/${item.id}`" class="text-xs font-semibold text-blue-600 hover:text-blue-800">
                     Proses →
@@ -194,12 +203,13 @@
                 <th class="table-header">No. IWO</th>
                 <th class="table-header">Pelanggan</th>
                 <th class="table-header">Deadline RFS</th>
+                <th class="table-header">Progress</th>
                 <th class="table-header">Aksi</th>
               </tr>
             </thead>
             <tbody>
               <tr v-if="!stats.action_required?.overdue_list?.length">
-                <td colspan="4" class="table-cell text-center text-slate-400 py-6">
+                <td colspan="5" class="table-cell text-center text-slate-400 py-6">
                   Tidak ada IWO overdue
                 </td>
               </tr>
@@ -209,6 +219,14 @@
                 </td>
                 <td class="table-cell font-medium">{{ item.customer?.name || '-' }}</td>
                 <td class="table-cell text-rose-600 font-semibold text-[11px]">{{ item.deadline_rfs || '-' }}</td>
+                <td class="table-cell">
+                  <div class="flex items-center gap-2">
+                    <div class="w-16 h-1.5 rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
+                      <div class="h-full rounded-full bg-blue-600" :style="{ width: `${item.progress || 0}%` }"></div>
+                    </div>
+                    <span class="text-[10px] font-mono text-slate-500">{{ item.progress || 0 }}%</span>
+                  </div>
+                </td>
                 <td class="table-cell">
                   <router-link :to="`/iwo/${item.id}`" class="text-xs font-semibold text-blue-600 hover:text-blue-800">
                     Review →

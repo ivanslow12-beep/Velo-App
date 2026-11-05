@@ -12,7 +12,27 @@
         <div>
           <div class="flex items-center gap-2">
             <h1 class="text-lg font-mono font-bold text-slate-900 dark:text-white">{{ iwo.iwo_no }}</h1>
-            <span class="badge" :class="getStatusBadgeClass(iwo.status)">{{ iwo.status }}</span>
+            <span class="badge" :class="getStatusBadgeClass(iwo.status)">{{ getStatusLabel(iwo.status) }}</span>
+            <select
+              v-if="canChangeStatus"
+              :value="iwo.status"
+              @change="updateIwoStatus($event.target.value)"
+              :disabled="actionLoading"
+              class="form-input text-[11px] py-1 w-auto"
+              aria-label="Ubah status IWO"
+            >
+              <option value="DRAFT">Draft</option>
+              <option value="PENDING">Pending</option>
+              <option value="IN_PROGRESS">Dalam Proses</option>
+              <option value="ACTIVATION">Aktivasi</option>
+              <option value="BAST">BAST</option>
+              <option value="ACC">ACC</option>
+              <option value="COMPLETED">Selesai</option>
+              <option value="CANCELLED">Cancel</option>
+            </select>
+            <span v-if="iwo.status_locked" class="text-[10px] font-semibold text-amber-600 dark:text-amber-400">
+              Status manual
+            </span>
             <span v-if="iwo.is_archived" class="badge bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">ARSIP</span>
             <span v-if="iwo.is_overdue" class="badge badge-danger">OVERDUE</span>
           </div>
@@ -172,31 +192,113 @@
       </div>
 
       <!-- Milestones List -->
-      <div class="card p-5 space-y-3">
-        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Milestone Progress</h2>
-        <div class="space-y-2">
-          <div
-            v-for="ms in (iwo.milestones || [])"
-            :key="ms.id"
-            class="flex items-center justify-between text-xs p-2 rounded-lg bg-slate-50 dark:bg-slate-700/40"
-          >
-            <div class="flex items-center gap-2">
-              <span
-                class="w-2 h-2 rounded-full"
-                :class="ms.status === 'DONE' ? 'bg-emerald-500' : ms.status === 'IN_PROGRESS' ? 'bg-blue-500' : 'bg-slate-300'"
-              ></span>
-              <span :class="{ 'line-through text-slate-400': ms.status === 'DONE' }">{{ ms.name }}</span>
+      <div class="card flex min-h-[340px] min-w-0 max-h-[500px] flex-col overflow-hidden">
+        <div class="sticky top-0 z-10 flex-shrink-0 space-y-3 border-b border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Tahapan & Progress</h2>
+              <p class="mt-1 text-[11px] text-slate-500">
+                {{ completedMilestones }}/{{ totalMilestones }} tahap selesai · progress dihitung otomatis oleh sistem.
+              </p>
             </div>
-            <select
-              :value="ms.status"
-              @change="updateMilestone(ms.id, $event.target.value)"
-              class="text-[10px] px-2 py-0.5 rounded border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800"
+            <button type="button" @click="showAddMilestone = !showAddMilestone" class="btn-secondary shrink-0 text-xs py-1.5 px-3">
+              {{ showAddMilestone ? 'Batal' : '+ Tambah Tahap' }}
+            </button>
+          </div>
+          <div>
+            <div class="mb-1.5 flex items-center justify-between text-[11px]">
+              <span class="font-semibold text-slate-600 dark:text-slate-300">Progress IWO</span>
+              <span class="font-bold text-blue-600 dark:text-blue-400">{{ milestoneProgress }}%</span>
+            </div>
+            <div class="h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
+              <div class="h-full rounded-full bg-blue-600 transition-all" :style="{ width: `${milestoneProgress}%` }"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="milestone-scroll min-h-0 flex-1 space-y-3 overflow-x-hidden overflow-y-auto overscroll-contain p-4">
+          <form v-if="showAddMilestone" @submit.prevent="addMilestone" class="space-y-2 rounded-lg border border-blue-200 bg-blue-50/60 p-3 dark:border-blue-800 dark:bg-blue-950/20">
+            <p class="text-xs font-semibold text-slate-700 dark:text-slate-200">Tambah tahapan baru</p>
+            <input v-model="newMilestone.name" required maxlength="255" class="form-input text-xs" placeholder="Nama tahapan" />
+            <textarea v-model="newMilestone.description" rows="2" class="form-input text-xs" placeholder="Catatan / detail tahapan (opsional)"></textarea>
+            <div>
+              <label class="form-label text-[11px]">Tanggal target</label>
+              <input v-model="newMilestone.due_date" type="date" class="form-input text-xs" />
+            </div>
+            <div class="flex justify-end">
+              <button type="submit" :disabled="savingMilestone" class="btn-primary text-xs py-1.5 px-3">
+                {{ savingMilestone ? 'Menyimpan...' : 'Simpan Tahapan' }}
+              </button>
+            </div>
+          </form>
+
+          <p v-if="!iwo.milestones?.length" class="py-4 text-center text-xs text-slate-400">
+            Belum ada tahapan. Tambahkan tahapan untuk mulai mencatat progress.
+          </p>
+          <div
+            v-for="(ms, index) in (iwo.milestones || [])"
+            :key="ms.id"
+            class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800/60"
+          >
+            <button
+              type="button"
+              @click="toggleMilestone(ms.id)"
+              :aria-expanded="expandedMilestoneId === ms.id"
+              class="flex w-full items-start gap-2 p-3 text-left transition hover:bg-slate-50 dark:hover:bg-slate-700/40"
             >
-              <option value="PENDING">PENDING</option>
-              <option value="IN_PROGRESS">IN_PROGRESS</option>
-              <option value="DONE">DONE</option>
-              <option value="SKIPPED">SKIPPED</option>
-            </select>
+              <CheckCircleIcon
+                v-if="ms.status === 'DONE'"
+                class="mt-0.5 h-4 w-4 shrink-0 text-emerald-400"
+                aria-label="Selesai"
+              />
+              <span v-else class="mt-0.5 h-4 w-4 shrink-0 rounded-full border border-slate-500"></span>
+              <span class="min-w-0 flex-1">
+                <span class="flex flex-wrap items-center gap-1.5">
+                  <span class="text-xs font-semibold text-slate-800 dark:text-slate-100">TAHAP {{ index + 1 }}: {{ ms.name }}</span>
+                  <span class="rounded bg-blue-900/70 px-1.5 py-0.5 text-[9px] font-bold text-blue-200">BOBOT OTOMATIS {{ formatWeight(ms.weight) }}%</span>
+                </span>
+                <span class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] text-slate-400">
+                  <span class="inline-flex items-center gap-1">
+                    <CalendarIcon class="h-3 w-3" />
+                    Target: {{ formatMilestoneDate(ms.due_date) || '-' }}
+                  </span>
+                  <span aria-hidden="true">•</span>
+                  <span class="inline-flex items-center gap-1" :class="ms.status === 'DONE' ? 'text-emerald-400' : ''">
+                    <CheckIcon class="h-3 w-3" />
+                    Selesai: {{ formatMilestoneDate(ms.completed_at) || '-' }}
+                  </span>
+                </span>
+                <span v-if="ms.description" class="mt-1.5 block text-[10px] leading-relaxed text-slate-400">
+                  Catatan: {{ ms.description }}
+                </span>
+              </span>
+              <span class="inline-flex shrink-0 items-center gap-1.5">
+                <span class="rounded border px-1.5 py-0.5 text-[9px] font-bold" :class="getMilestoneStatusClass(ms.status)">
+                  {{ getMilestoneStatusLabel(ms.status) }}
+                </span>
+                <ChevronDownIcon class="h-3.5 w-3.5 text-slate-400 transition-transform" :class="{ 'rotate-180': expandedMilestoneId === ms.id }" />
+              </span>
+            </button>
+
+            <div v-if="expandedMilestoneId === ms.id" class="space-y-2 border-t border-slate-200 p-3 dark:border-slate-700">
+              <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <span class="text-[10px] font-bold text-slate-400">TAHAP {{ index + 1 }}</span>
+                <input v-model="ms.name" maxlength="255" class="form-input flex-1 text-xs font-semibold" aria-label="Nama tahapan" />
+              </div>
+              <textarea v-model="ms.description" rows="2" class="form-input text-xs" placeholder="Catatan tahapan (opsional)"></textarea>
+              <div>
+                <label class="form-label text-[11px]">Tanggal target</label>
+                <input v-model="ms.due_date" type="date" class="form-input text-xs" />
+              </div>
+              <div class="flex flex-wrap items-center justify-end gap-2">
+                <button type="button" @click="saveMilestone(ms)" :disabled="savingMilestone" class="btn-primary text-xs py-1.5 px-3">
+                  {{ savingMilestone ? 'Menyimpan...' : 'Simpan & Selesaikan' }}
+                </button>
+                <button type="button" @click="deleteMilestone(ms)" :disabled="savingMilestone" class="px-2 py-1.5 text-xs text-rose-600 hover:text-rose-700">
+                  Hapus
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -436,11 +538,16 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '../../api/index.js'
+import { useAuthStore } from '../../stores/auth.js'
 import {
   ArrowLeft as ArrowLeftIcon,
+  CalendarDays as CalendarIcon,
+  Check as CheckIcon,
+  CheckCircle as CheckCircleIcon,
+  ChevronDown as ChevronDownIcon,
   FileText as FileTextIcon,
   CheckSquare as CheckSquareIcon,
   Plus as PlusIcon,
@@ -451,12 +558,17 @@ import {
 
 const route = useRoute()
 const router = useRouter()
+const authStore = useAuthStore()
 
 const iwo = ref(null)
 const loading = ref(false)
 const showDetailDeleteModal = ref(false)
 const showDetailArchiveModal = ref(false)
 const actionLoading = ref(false)
+const showAddMilestone = ref(false)
+const savingMilestone = ref(false)
+const expandedMilestoneId = ref(null)
+const newMilestone = ref({ name: '', description: '', due_date: '' })
 
 const networkForm = ref({})
 const bastTemplates = ref([])
@@ -474,12 +586,52 @@ const accForm = ref({
   start_billing_date: '',
 })
 
+const completedMilestones = computed(() => (iwo.value?.milestones || []).filter((ms) => ms.status === 'DONE').length)
+const totalMilestones = computed(() => (iwo.value?.milestones || []).length)
+const canChangeStatus = computed(() => authStore.hasRole('ADMINISTRATOR', 'MANAGEMENT', 'ENGINEER'))
+const milestoneProgress = computed(() => {
+  return Math.min(100, Math.max(0, Number(iwo.value?.progress || 0)))
+})
+
 function getStatusBadgeClass(st) {
   if (st === 'COMPLETED') return 'badge-active'
   if (st === 'PENDING') return 'badge-draft'
+  if (st === 'CANCELLED') return 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300'
   if (st === 'IN_PROGRESS' || st === 'ACTIVATION') return 'badge-info'
   if (st === 'BAST' || st === 'ACC') return 'badge-purple'
   return 'badge-inactive'
+}
+
+function getStatusLabel(status) {
+  return status === 'CANCELLED' ? 'CANCEL' : status
+}
+
+function formatWeight(weight) {
+  return Number(weight || 0).toString()
+}
+
+function getMilestoneStatusLabel(status) {
+  const labels = {
+    PENDING: 'BELUM MULAI',
+    IN_PROGRESS: 'BERJALAN',
+    DONE: 'SELESAI',
+    SKIPPED: 'DILEWATI',
+  }
+  return labels[status] || status
+}
+
+function getMilestoneStatusClass(status) {
+  const classes = {
+    PENDING: 'border-amber-700/70 bg-amber-950/30 text-amber-300',
+    IN_PROGRESS: 'border-blue-700/70 bg-blue-950/30 text-blue-300',
+    DONE: 'border-emerald-700/70 bg-emerald-950/30 text-emerald-300',
+    SKIPPED: 'border-slate-600 bg-slate-800 text-slate-300',
+  }
+  return classes[status] || 'border-slate-600 bg-slate-800 text-slate-300'
+}
+
+function toggleMilestone(milestoneId) {
+  expandedMilestoneId.value = expandedMilestoneId.value === milestoneId ? null : milestoneId
 }
 
 async function loadIwo() {
@@ -487,11 +639,36 @@ async function loadIwo() {
   try {
     const res = await api.get(`/iwo/${route.params.id}`)
     iwo.value = res.data.data
+    iwo.value.milestones = (iwo.value.milestones || []).map((milestone) => ({
+      ...milestone,
+      weight: Number(milestone.weight || 0),
+      completed_at: milestone.completed_at ? milestone.completed_at.slice(0, 10) : '',
+    }))
     networkForm.value = { ...(iwo.value.networkInfo || {}) }
+    window.dispatchEvent(new CustomEvent('iwo:updated', {
+      detail: {
+        id: iwo.value.id,
+        progress: iwo.value.progress,
+        status: iwo.value.status,
+      },
+    }))
   } catch (err) {
     console.error('Failed to load IWO:', err)
   } finally {
     loading.value = false
+  }
+}
+
+async function updateIwoStatus(status) {
+  actionLoading.value = true
+  try {
+    await api.patch(`/iwo/${iwo.value.id}/status`, { status })
+    await loadIwo()
+  } catch (err) {
+    alert('Gagal mengubah status IWO: ' + (err.response?.data?.message || err.message))
+    await loadIwo()
+  } finally {
+    actionLoading.value = false
   }
 }
 
@@ -523,12 +700,61 @@ async function saveNetwork() {
   }
 }
 
-async function updateMilestone(milestoneId, status) {
+function formatMilestoneDate(value) {
+  if (!value) return ''
+  const [year, month, day] = value.slice(0, 10).split('-').map(Number)
+  if (!year || !month || !day) return ''
+  return new Date(year, month - 1, day).toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
+}
+
+async function saveMilestone(milestone) {
+  savingMilestone.value = true
+  milestone.status = 'DONE'
   try {
-    await api.patch(`/iwo/${iwo.value.id}/milestones/${milestoneId}`, { status })
+    await api.patch(`/iwo/${iwo.value.id}/milestones/${milestone.id}`, {
+      name: milestone.name,
+      description: milestone.description || '',
+      due_date: milestone.due_date || '',
+    })
     await loadIwo()
   } catch (err) {
-    alert('Gagal update milestone')
+    alert('Gagal menyimpan milestone: ' + (err.response?.data?.message || err.message))
+    await loadIwo()
+  } finally {
+    savingMilestone.value = false
+  }
+}
+
+async function addMilestone() {
+  savingMilestone.value = true
+  try {
+    await api.post(`/iwo/${iwo.value.id}/milestones`, {
+      ...newMilestone.value,
+    })
+    newMilestone.value = { name: '', description: '', due_date: '' }
+    showAddMilestone.value = false
+    await loadIwo()
+  } catch (err) {
+    alert('Gagal menambahkan milestone: ' + (err.response?.data?.message || err.message))
+  } finally {
+    savingMilestone.value = false
+  }
+}
+
+async function deleteMilestone(milestone) {
+  if (!confirm(`Hapus tahapan "${milestone.name}"?`)) return
+  savingMilestone.value = true
+  try {
+    await api.delete(`/iwo/${iwo.value.id}/milestones/${milestone.id}`)
+    await loadIwo()
+  } catch (err) {
+    alert('Gagal menghapus milestone: ' + (err.response?.data?.message || err.message))
+  } finally {
+    savingMilestone.value = false
   }
 }
 
@@ -616,3 +842,19 @@ onMounted(async () => {
   await loadTemplates()
 })
 </script>
+
+<style scoped>
+.milestone-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #475569 transparent;
+}
+
+.milestone-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.milestone-scroll::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background-color: #475569;
+}
+</style>

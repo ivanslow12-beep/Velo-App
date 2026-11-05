@@ -237,7 +237,7 @@
 
             <!-- Status -->
             <td class="table-cell">
-              <span class="badge" :class="getStatusBadge(item.status)">{{ item.status }}</span>
+              <span class="badge" :class="getStatusBadge(item.status)">{{ getStatusLabel(item.status) }}</span>
             </td>
 
             <!-- Progress -->
@@ -434,7 +434,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onActivated, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import api from '../../api/index.js'
 import {
@@ -475,6 +475,16 @@ const importing = ref(false)
 const importResult = ref(null)
 
 let searchTimer = null
+function handleIwoUpdated(event) {
+  const { id, progress: updatedProgress, status: updatedStatus } = event.detail || {}
+  const listItem = iwos.value.find((item) => item.id === id)
+  if (listItem) {
+    if (updatedProgress !== undefined) listItem.progress = updatedProgress
+    if (updatedStatus) listItem.status = updatedStatus
+  }
+  fetchIwos()
+}
+
 function debounceSearch() {
   clearTimeout(searchTimer)
   searchTimer = setTimeout(fetchIwos, 300)
@@ -569,10 +579,15 @@ function getPriorityClass(p) {
 function getStatusBadge(st) {
   if (st === 'COMPLETED') return 'badge-active'
   if (st === 'PENDING') return 'badge-draft'
+  if (st === 'CANCELLED') return 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300'
   if (st === 'IN_PROGRESS' || st === 'ACTIVATION') return 'badge-info'
   if (st === 'BAST' || st === 'ACC') return 'badge-purple'
   if (st === 'ARCHIVED') return 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300'
   return 'badge-inactive'
+}
+
+function getStatusLabel(st) {
+  return st === 'CANCELLED' ? 'CANCEL' : st
 }
 
 function selectImportFile(event) {
@@ -665,12 +680,20 @@ async function fetchIwos() {
 
 onMounted(() => {
   fetchIwos()
+  window.addEventListener('iwo:updated', handleIwoUpdated)
+  window.addEventListener('pageshow', fetchIwos)
   window.addEventListener('click', closeMenu)
   window.addEventListener('scroll', closeMenu, true)
   window.addEventListener('resize', closeMenu)
 })
 
+onActivated(() => {
+  fetchIwos()
+})
+
 onUnmounted(() => {
+  window.removeEventListener('iwo:updated', handleIwoUpdated)
+  window.removeEventListener('pageshow', fetchIwos)
   window.removeEventListener('click', closeMenu)
   window.removeEventListener('scroll', closeMenu, true)
   window.removeEventListener('resize', closeMenu)
