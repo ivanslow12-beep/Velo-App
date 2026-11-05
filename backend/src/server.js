@@ -11,6 +11,8 @@ dotenv.config();
 
 import config from './config/index.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
+import sequelize from './database/sequelize.js';
+import { ensureIwoColumns } from './database/iwoSchema.js';
 
 // Import routes
 import authRoutes from './routes/v1/auth.js';
@@ -97,12 +99,22 @@ app.use(notFound);
 // Error handler
 app.use(errorHandler);
 
-// Start server
-const PORT = config.port;
-app.listen(PORT, () => {
-  console.log(`🚀 VELO IWO API running on http://localhost:${PORT}`);
-  console.log(`📋 Environment: ${config.env}`);
-  startEmailSyncScheduler();
+// Initialize tables and keep older databases compatible before accepting requests.
+const startServer = async () => {
+  await sequelize.sync();
+  await ensureIwoColumns(sequelize);
+
+  const PORT = config.port;
+  app.listen(PORT, () => {
+    console.log(`🚀 VELO IWO API running on http://localhost:${PORT}`);
+    console.log(`📋 Environment: ${config.env}`);
+    startEmailSyncScheduler();
+  });
+};
+
+startServer().catch((err) => {
+  console.error('Failed to initialize database:', err);
+  process.exitCode = 1;
 });
 
 export default app;

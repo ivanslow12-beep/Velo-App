@@ -24,9 +24,6 @@
               <option value="DRAFT">Draft</option>
               <option value="PENDING">Pending</option>
               <option value="IN_PROGRESS">Dalam Proses</option>
-              <option value="ACTIVATION">Aktivasi</option>
-              <option value="BAST">BAST</option>
-              <option value="ACC">ACC</option>
               <option value="COMPLETED">Selesai</option>
               <option value="CANCELLED">Cancel</option>
             </select>

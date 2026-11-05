@@ -1,23 +1,6 @@
 import sequelize from './sequelize.js';
 import '../models/index.js'; // registers all models with Sequelize
-
-const IWO_NEW_COLUMNS = [
-  ['customer_name_manual', 'VARCHAR(255)'],
-  ['customer_contact_person', 'VARCHAR(255)'],
-  ['customer_phone', 'VARCHAR(255)'],
-  ['customer_email', 'VARCHAR(255)'],
-  ['customer_address_manual', 'TEXT'],
-  ['service_name_manual', 'VARCHAR(255)'],
-  ['service_price', 'DECIMAL(15,2)'],
-  ['sales_name_manual', 'VARCHAR(255)'],
-  ['pic_project', 'VARCHAR(255)'],
-  ['partner_1', 'VARCHAR(255)'],
-  ['partner_2', 'VARCHAR(255)'],
-  ['pop_or_standalone', 'VARCHAR(255)'],
-  ['industry_sales', 'VARCHAR(255)'],
-  ['status_locked', 'TINYINT(1) NOT NULL DEFAULT 0'],
-  ['is_archived', 'TINYINT(1) DEFAULT 0'],
-];
+import { ensureIwoColumns } from './iwoSchema.js';
 
 const EMAIL_CONNECTION_NEW_COLUMNS = [
   ['last_sync_uid', 'INTEGER'],
@@ -76,16 +59,7 @@ const migrate = async () => {
   try {
     await sequelize.sync();
 
-    // Ensure iwos table has the new columns if migrated from older schema
-    const [cols] = await sequelize.query('PRAGMA table_info(iwos);');
-    const existingCols = new Set(cols.map((c) => c.name));
-
-    for (const [colName, colType] of IWO_NEW_COLUMNS) {
-      if (!existingCols.has(colName)) {
-        await sequelize.query(`ALTER TABLE iwos ADD COLUMN ${colName} ${colType};`);
-        console.log(`  Added column iwos.${colName} (${colType})`);
-      }
-    }
+    await ensureIwoColumns(sequelize);
 
     const [milestoneCols] = await sequelize.query('PRAGMA table_info(iwo_milestones);');
     const hasMilestoneWeight = milestoneCols.some((column) => column.name === 'weight');

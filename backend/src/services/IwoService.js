@@ -210,6 +210,11 @@ export class IwoService {
     }));
     await MilestoneModel.bulkCreate(milestoneData);
 
+    await IWO.update(
+      { status: 'PENDING', progress: 0, status_locked: false },
+      { where: { id: iwo.id } },
+    );
+
     await logAudit({
       actorId,
       action: 'IWO_CREATED',
